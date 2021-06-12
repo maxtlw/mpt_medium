@@ -1,10 +1,10 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 from gather import get_assets
 from mpt import Asset, Portfolio
 from typing import List, Tuple
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
 
 np.random.seed(7)  # For reproducibility
 
@@ -15,7 +15,7 @@ ASSETS_SYMBOLS = ['ETH', 'ADA', 'MATIC', 'USDT', 'LTC', 'BTC', 'XMR']
 assets = get_assets(ASSETS_SYMBOLS)
 
 
-def random_portfolios():
+def random_portfolios() -> (List, List):
     """ Generate points corresponding to random portfolios. """
     X, y = [], []
     for _ in range(3000):
@@ -25,7 +25,7 @@ def random_portfolios():
     return X, y
 
 
-def efficient_frontier():
+def efficient_frontier() -> (List, List):
     """ Generate points on the efficient frontier. """
     X, y = [], []
     portfolio = Portfolio('.', assets)
@@ -39,7 +39,7 @@ def efficient_frontier():
     return X, y
 
 
-def build_results_dataframe(assets: Tuple[Asset], portfolios: List[Portfolio]):
+def build_results_dataframe(assets: Tuple[Asset], portfolios: List[Portfolio]) -> pd.DataFrame:
     """ Build a dataframe of optimal portfolios. """
     # Check that we do not have portfolios with different assets
     assert all(p.assets_names == tuple(a.name for a in assets) for p in portfolios)
@@ -48,11 +48,12 @@ def build_results_dataframe(assets: Tuple[Asset], portfolios: List[Portfolio]):
         {p.name: p.weights for p in portfolios}
     )
     df.index = [a.name for a in assets]
-    return df.T
+    return df.T     # For simplicity we created a transposed frame, now we need to transpose back
 
 
-def plot_portfolio(portfolio, color, label, alpha=1.0):
+def plot_portfolio(portfolio: Portfolio, color: str, label: str, alpha: float=1.0) -> None:
     """ Plots a single point representing a portfolio, using Seaborn. """
+    assert 0. <= alpha <= 1.
     sns.scatterplot(
         x=[portfolio.variance],
         y=[portfolio.expected_log_return],
@@ -128,18 +129,6 @@ plt.ylabel('Portfolio expected (logarithmic) return')
 plt.legend(loc='lower right')
 plt.show()
 
-# Show the optimal portfolios
-rows = int(np.sqrt(len(df)))
-cols = (len(df) + 1) // rows
-pal = sns.color_palette("Greens_d", len(df.columns))
-f, axes = plt.subplots(rows, cols)
-for row in range(rows):
-    for col in range(cols):
-        flat_position = row*cols + col
-        if flat_position >= len(df):
-            break
-        g = sns.barplot(x=df.columns, y=df.iloc[flat_position].tolist(), palette=pal, ax=axes[row][col])
-        for i, v in enumerate(df.iloc[flat_position].tolist()):
-            g.text(i, v, f'{v:.2%}', color='black', ha="center")
-        axes[row][col].set_title(df.index[flat_position])
+# Heatmap
+sns.heatmap(df, annot=True, fmt='.2%', cmap="Oranges")
 plt.show()

@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 TRADING_DAYS_PER_YEAR = 356
 
 
-def get_log_returns_over_period(price_history: pd.DataFrame):
+def get_log_returns_over_period(price_history: pd.DataFrame) -> np.array:
     """
     Given the price time series, compute the logarithm of the ration between final and initial price.
     """
@@ -15,7 +15,7 @@ def get_log_returns_over_period(price_history: pd.DataFrame):
     return np.log(prices[1:] / prices[:-1]).reshape(-1, 1)
 
 
-def random_portfolio_weights(weights_count):
+def random_portfolio_weights(weights_count) -> np.array:
     """ Random portfolio weights, of length weights_count. """
     weights = np.random.random((weights_count, 1))
     weights /= np.sum(weights)
@@ -34,7 +34,7 @@ class Asset:
 
     @staticmethod
     @lru_cache
-    def covariance_matrix(assets: Tuple):
+    def covariance_matrix(assets: Tuple) -> np.array:
         product_expectation = np.zeros((len(assets), len(assets)))
         for i in range(len(assets)):
             for j in range(len(assets)):
@@ -124,10 +124,10 @@ class Portfolio:
         assert optim_res.success, f'Optimization with Sharpe ratio failed: {optim_res.message}'
         self._weights = optim_res.x.reshape(-1, 1)
 
-    def _expected_log_return(self, w):
+    def _expected_log_return(self, w) -> np.array:
         return (self.asset_expected_returns.T @ w.reshape(-1, 1))[0][0]
 
-    def _variance(self, w):
+    def _variance(self, w) -> np.array:
         return (w.reshape(-1, 1).T @ self.covariance_matrix @ w.reshape(-1, 1))[0][0]
 
     @property

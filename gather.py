@@ -1,15 +1,15 @@
-from datetime import datetime
-from typing import List, Dict
-from mpt import Asset
 import pandas as pd
 import requests
+from datetime import datetime
+from mpt import Asset
+from typing import List, Dict, Tuple
 
 """
 The complete documentation for the coincap.io REST API can be found at https://docs.coincap.io/.
 """
 
 
-def get_available_assets(limit: int = 100):
+def get_available_assets(limit: int = 100) -> List:
     """ Get the first most capitalized assets from the coincap.io API. """
 
     response = requests.get(f"https://api.coincap.io/v2/assets", params={'limit': str(limit)})
@@ -27,7 +27,7 @@ def get_available_assets(limit: int = 100):
     return assets
 
 
-def filter_by_symbol(assets: List[Dict], symbols: List):
+def filter_by_symbol(assets: List[Dict], symbols: List) -> List:
     """ Filter the wanted assets, returning a list of assets ordered in the same was as the symbols list.
     If one asset is not available, throw an exception.
     """
@@ -44,7 +44,7 @@ def filter_by_symbol(assets: List[Dict], symbols: List):
     return filtered_assets
 
 
-def get_series(currency_id: str, interval: str):
+def get_series(currency_id: str, interval: str) -> pd.DataFrame:
     """ Get the time series for the given currency_id. Timestamps and dates are given in UTC time. """
     url = f"https://api.coincap.io/v2/assets/{currency_id}/history"
 
@@ -69,7 +69,7 @@ def get_series(currency_id: str, interval: str):
     return df
 
 
-def get_assets(symbols: List[str], search_limit: int = 100):
+def get_assets(symbols: List[str], search_limit: int = 100) -> Tuple:
     """ Get the dataframes of the wanted assets, specified as symbols in the symbols list. """
     # 1) Get the available assets up to the specified limit
     assets = get_available_assets(search_limit)
