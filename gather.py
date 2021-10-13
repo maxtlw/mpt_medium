@@ -1,19 +1,38 @@
+import time
+from datetime import datetime
+from typing import List, Dict, Tuple
+
 import pandas as pd
 import requests
-from datetime import datetime
+
 from mpt import Asset
-from typing import List, Dict, Tuple
 
 """
 The complete documentation for the coincap.io REST API can be found at https://docs.coincap.io/.
 """
 
 
+def request_and_jsonize_calm(url, params=None):
+    repeats = 0
+    while True:
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            return response.json()
+        if response.status_code == 429:
+            repeats += 1
+            sleep_secs = 5 * repeats
+            time.sleep(sleep_secs)
+            print(f'Sleeping {sleep_secs} seconds on url: {url}')
+            continue
+        if repeats >= 3:
+            raise Exception(f'Retried too many times: stuck on url {url}')
+        response.raise_for_status()
+
+
 def get_available_assets(limit: int = 100) -> List:
     """ Get the first most capitalized assets from the coincap.io API. """
 
-    response = requests.get(f"https://api.coincap.io/v2/assets", params={'limit': str(limit)})
-    js = response.json()
+    js = request_and_jsonize_calm(f"https://api.coincap.io/v2/assets", params={'limit': str(limit)})
 
     assets = []
     for asset in js['data']:
@@ -48,8 +67,7 @@ def get_series(currency_id: str, interval: str) -> pd.DataFrame:
     """ Get the time series for the given currency_id. Timestamps and dates are given in UTC time. """
     url = f"https://api.coincap.io/v2/assets/{currency_id}/history"
 
-    response = requests.request("GET", url, params={'interval': interval})
-    js = response.json()
+    js = request_and_jsonize_calm(url, params={'interval': interval})
 
     times, prices, dates = [], [], []
     for measurement in js['data']:
@@ -83,6 +101,7 @@ def get_assets(symbols: List[str], search_limit: int = 100) -> Tuple:
     # 3) For every selected asset, return its dataframe
     to_return = []
     for asset in filtered_assets:
+        time.sleep(5)
         series = get_series(asset['id'], 'd1')   # With d1 as interval, we select daily prices
         to_return.append(Asset(asset['symbol'], series))
     return tuple(to_return)

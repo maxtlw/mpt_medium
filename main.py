@@ -1,15 +1,17 @@
+from typing import List, Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
 from gather import get_assets
 from mpt import Asset, Portfolio
-from typing import List, Tuple
 
 np.random.seed(7)  # For reproducibility
 
 TREASURY_BILL_RATE = 0.05
-ASSETS_SYMBOLS = ['ETH', 'ADA', 'MATIC', 'USDT', 'LTC', 'BTC', 'XMR']
+ASSETS_SYMBOLS = ['ETH', 'ADA', 'MATIC', 'USDT', 'SHIB', 'BTC']
 
 # 1) Get the wanted assets
 assets = get_assets(ASSETS_SYMBOLS)
@@ -120,7 +122,7 @@ portfolios_to_export.append(s_portfolio)
 df = build_results_dataframe(assets,
                              portfolios_to_export
                              )
-pd.options.display.float_format = '{:,.2f}%'.format
+pd.options.display.float_format = '{:,.2%}'.format
 print(df)
 
 # 4) Plot
