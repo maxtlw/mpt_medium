@@ -1,10 +1,11 @@
-import pandas as pd
-import numpy as np
-from typing import Tuple
 from functools import lru_cache
+from typing import Tuple
+
+import numpy as np
+import pandas as pd
 from scipy.optimize import minimize
 
-TRADING_DAYS_PER_YEAR = 356
+TRADING_DAYS_PER_YEAR = 365
 
 
 def get_log_returns_over_period(price_history: pd.DataFrame) -> np.array:
@@ -30,6 +31,7 @@ class Asset:
             daily_prices: pd.DataFrame
             ):
         self.name = name
+        self.daily_prices = daily_prices
         self.daily_log_returns = get_log_returns_over_period(daily_prices)
 
     @staticmethod
